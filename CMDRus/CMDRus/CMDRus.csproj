@@ -3,8 +3,35 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
+    <Copyright>Gemalto LLC</Copyright>
+    <NeutralLanguage>en</NeutralLanguage>
+    <Owners>Yury Goryachev</Owners>
+    <Title>CMDRUS</Title>
+    <PackageProjectUrl>https://github.com/RyanSKennedy/gemalto-cmdrus</PackageProjectUrl>
+    <Authors>Yury Goryachev</Authors>
+    <Description> Console utility RUS for:
+- Get C2V;
+- Get Fingerprint;
+- Apply update;
+- Get info about Product Key;
+- Activate Product Key.</Description>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'Default' ">
+    <StartAction>Project</StartAction>
+    <StartArguments></StartArguments>
+    <ExternalConsole>true</ExternalConsole>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'with -h' ">
+    <StartAction>Project</StartAction>
+    <StartArguments>-h</StartArguments>
+    <ExternalConsole>true</ExternalConsole>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'with -c' ">
+    <StartAction>Project</StartAction>
+    <StartArguments>-c -p:keyState.c2v -l</StartArguments>
+    <ExternalConsole>true</ExternalConsole>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="hasp_net_core" Version="2.0.1" />
   </ItemGroup>

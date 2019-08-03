@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -34,6 +35,7 @@ namespace CMDRus
         private static bool logIsEnabled;
         private static bool targetIsRemote;
         private static string pathForSave = "";
+        private static string pathForLog = "";
         private static string c2v = "";
         private static string action = "";
         public static bool logsFileIsExist;
@@ -52,7 +54,8 @@ namespace CMDRus
             { "t", 1 },
             { "q", 4 },
             { "h", 3 }
-        }; 
+        };
+        public static Log newLog;
 
         private struct currentRequest
         {
@@ -204,8 +207,7 @@ namespace CMDRus
             // xx)  etc "a" with "p"
             //---
             // 100) c
-            // 101) c:*C2VFileName.c2v*
-            // 102) c:*PathToC2VFile\C2VFileName.c2v*
+            // 101) c:*KeyID*
             //---
             // 1xx) etc "c" with "l", "t" 
             //---
@@ -213,8 +215,6 @@ namespace CMDRus
             // 2xx) etc "i" + "e" with "l", "p"
             //---
             // 300) f
-            // 301) f:*FPFileName.c2v*
-            // 302) f:*PathToFPFile\FPFileName.c2v*
             //---
             // 3xx) etc "f" with "l"
             //---
@@ -234,14 +234,33 @@ namespace CMDRus
                 switch(el.Value.Key)
                 {
                     case "a":
+                        if (el.Value.Value == "")
+                        {
+                            userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
+                            break;
+                        }
+
+                        //if (!userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "e").First().Key) || userCommands.Where(x => x.Value.Key == "e").First().Value.Value == "")
+                        if (userCommands.Where(x => x.Value.Key == "e").Count() <= 0 || userCommands.Where(x => x.Value.Key == "e").First().Value.Value == "")
+                        {
+                            userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
+                            break;
+                        }
+                        break;
+
                     case "i":
-                        if (el.Value.Key == "")
+                        //if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "t").First().Key))
+                        if (userCommands.Where(x => x.Value.Key == "t").Count() > 0)
+                            userCommands.Remove(userCommands.Where(x => x.Value.Key == "t").First().Key);
+
+                        if (el.Value.Value == "")
                         {
                             userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int> (0, 3), new KeyValuePair<string, string>("h", "") } };
                             break;
                         }
 
-                        if (!userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "e").First().Key) || userCommands.Where(x => x.Value.Key == "e").First().Value.Value == "")
+                        //if (!userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "e").First().Key) || userCommands.Where(x => x.Value.Key == "e").First().Value.Value == "")
+                        if (userCommands.Where(x => x.Value.Key == "e").Count() <= 0 || userCommands.Where(x => x.Value.Key == "e").First().Value.Value == "")
                         {
                             userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
                             break;
@@ -249,20 +268,60 @@ namespace CMDRus
                         break;
 
                     case "c":
-                    case "f":
-                        if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "e").First().Key))
+                        //if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "e").First().Key))
+                        if (userCommands.Where(x => x.Value.Key == "e").Count() > 0)
                             userCommands.Remove(userCommands.Where(x => x.Value.Key == "e").First().Key);
-                        break;
 
-                    case "u":
-                        if (el.Value.Key == "")
+                        //if (!userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "p").First().Key) || userCommands.Where(x => x.Value.Key == "p").First().Value.Value == "")
+                        if (userCommands.Where(x => x.Value.Key == "p").Count() <= 0 || userCommands.Where(x => x.Value.Key == "p").First().Value.Value == "")
                         {
                             userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
                             break;
                         }
 
-                        if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "e").First().Key))
+                        //if (el.Value.Value == "" && (!userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "t").First().Key) || userCommands.Where(x => x.Value.Key == "t").First().Value.Value == ""))
+                        //if (el.Value.Value == "" && (userCommands.Where(x => x.Value.Key == "t").Count() <= 0 || userCommands.Where(x => x.Value.Key == "t").First().Value.Value == ""))
+                        //{
+                        //    userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
+                        //    break;
+                        //}
+                        break;
+
+                    case "f":
+                        //if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "e").First().Key))
+                        if (userCommands.Where(x => x.Value.Key == "e").Count() > 0)
                             userCommands.Remove(userCommands.Where(x => x.Value.Key == "e").First().Key);
+
+                        //if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "t").First().Key))
+                        if (userCommands.Where(x => x.Value.Key == "t").Count() > 0)
+                            userCommands.Remove(userCommands.Where(x => x.Value.Key == "t").First().Key);
+
+                        //if (!userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "p").First().Key) || userCommands.Where(x => x.Value.Key == "p").First().Value.Value == "")
+                        if (userCommands.Where(x => x.Value.Key == "p").Count() <= 0 || userCommands.Where(x => x.Value.Key == "p").First().Value.Value == "")
+                        {
+                            userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
+                            break;
+                        }
+                        break;
+
+                    case "u":
+                        //if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "e").First().Key))
+                        if (userCommands.Where(x => x.Value.Key == "e").Count() > 0)
+                            userCommands.Remove(userCommands.Where(x => x.Value.Key == "e").First().Key);
+
+                        //if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "p").First().Key))
+                        if (userCommands.Where(x => x.Value.Key == "p").Count() > 0)
+                            userCommands.Remove(userCommands.Where(x => x.Value.Key == "p").First().Key);
+
+                        //if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "t").First().Key))
+                        if (userCommands.Where(x => x.Value.Key == "t").Count() > 0)
+                            userCommands.Remove(userCommands.Where(x => x.Value.Key == "t").First().Key);
+
+                        if (el.Value.Value == "")
+                        {
+                            userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
+                            break;
+                        }
                         break;
                 }
             }
@@ -291,8 +350,8 @@ namespace CMDRus
                                "</activationInput>" +
                             "</activation>";
             RequestData res = new RequestData();
-            userCommands.Reverse();
-            foreach (var el in userCommands)
+            //userCommands.Reverse();
+            foreach (var el in userCommands.Reverse())
             {
                 switch (el.Value.Key)
                 {
@@ -354,9 +413,6 @@ namespace CMDRus
                         {
                             if (logIsEnabled) Log.Write("C2V is: " + tmpC2V);
                             c2v = tmpC2V;
-                            if (logIsEnabled) Log.Write("Try to set path for saving file...");
-                            pathForSave = (String.IsNullOrEmpty(pathForSave)) ? PathBuilder(el.Value.Value, el.Value.Key, el.Value.Key) : pathForSave;
-                            if (logIsEnabled) Log.Write("Path for saving file: " + pathForSave);
                             if (logIsEnabled) Log.Write("Try to Save result...");
                             savingResult = SaveFile(pathForSave, c2v);
                             if (logIsEnabled) Log.Write("Result state: " + savingResult);
@@ -407,9 +463,6 @@ namespace CMDRus
                         if (c2v.Contains("hasp_info"))
                         {
                             if (logIsEnabled) Log.Write("Fingerprint is: " + c2v);
-                            if (logIsEnabled) Log.Write("Try to set path for saving file...");
-                            pathForSave = (String.IsNullOrEmpty(pathForSave)) ? PathBuilder(el.Value.Value, el.Value.Key, el.Value.Key) : pathForSave;
-                            if (logIsEnabled) Log.Write("Path for saving file: " + pathForSave);
                             if (logIsEnabled) Log.Write("Try to Save result...");
                             savingResult = SaveFile(pathForSave, c2v);
                             if (logIsEnabled) Log.Write("Result state: " + savingResult);
@@ -430,14 +483,19 @@ namespace CMDRus
                         break;
 
                     case "l":
-                        var setLogResult = SetLogs(PathBuilder(el.Value.Value, el.Value.Key, userCommands.LastOrDefault().Value.Key));
-                        if (setLogResult == "OK") logIsEnabled = true;
+                        pathForLog = PathBuilder(el.Value.Value, el.Value.Key, userCommands.LastOrDefault().Value.Key);
+                        var setLogResult = SetLogs(pathForLog);
+                        if (setLogResult == "OK")
+                        {
+                            logIsEnabled = true;
+                            newLog = new Log(pathForLog);
+                        }
                         if (logIsEnabled && setLogResult != "OK") Console.WriteLine(setLogResult + Environment.NewLine);
                         break;
 
                     case "p":
                         if (logIsEnabled) Log.Write("Try to set path for saving file...");
-                        pathForSave = PathBuilder(el.Value.Value, el.Value.Key, userCommands.LastOrDefault().Value.Key);
+                        pathForSave = PathBuilder(el.Value.Value, el.Value.Key, userCommands.FirstOrDefault().Value.Key);
                         if (logIsEnabled) Log.Write("Path for saving file: " + pathForSave);
                         break;
 
@@ -471,23 +529,38 @@ namespace CMDRus
 
                     case "h":
                         Console.WriteLine("Help for CMDRus Utility." + Environment.NewLine);
-                        Console.WriteLine("Supported main command: " + Environment.NewLine);
-                        Console.WriteLine("\"-a:*ProductKey*\" - for send activation request;" + Environment.NewLine);
-                        Console.WriteLine("\"-i:*ProductKey*\" - for get info about ProductKey;" + Environment.NewLine);
-                        Console.WriteLine("\"-c\" - for get C2V from exist key." + Environment.NewLine + "       If more then one key in system, please set Key ID like: \"-c:*KeyID*\"" + Environment.NewLine);
-                        Console.WriteLine("\"-f\" - for get Fingerprint from PC;" + Environment.NewLine);
-                        Console.WriteLine("\"-u:*PathToUpdateFile*\" - for apply update (supported files: *.v2c, *.alp, *.h2h, *.h2r);" + Environment.NewLine);
+                        Console.WriteLine("Version: " + Assembly.GetEntryAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion + Environment.NewLine);
+                        Console.WriteLine("Main parameters: " + Environment.NewLine);
+                        Console.WriteLine("-a:<ProductKey>          Send activation request." + Environment.NewLine);
+                        Console.WriteLine("-i:<ProductKey>          Get info about ProductKey." + Environment.NewLine);
+                        Console.WriteLine("-c                       Get C2V from exist key. If more then one key in system," + Environment.NewLine +
+                            "                         please set Key ID like: -t:<KeyID>" + Environment.NewLine);
+                        Console.WriteLine("-f                       Get Fingerprint from PC." + Environment.NewLine);
+                        Console.WriteLine("-u:<PathToUpdateFile>    Apply update (supported files: *.v2c, *.alp, *.h2h, *.h2r)." + Environment.NewLine);
                         Console.WriteLine("Additional(Optional) parameters: " + Environment.NewLine);
-                        Console.WriteLine("\"-e:*SentinelEMSUrl*\" - for set EMS Url for activation;" + Environment.NewLine);
-                        Console.WriteLine("\"-p:*PathForSave*\" - for set path for save something;" + Environment.NewLine);
-                        Console.WriteLine("\"-t:*Target*\" - for set target of Key;" + Environment.NewLine);
-                        Console.WriteLine("\"-l\" - for start logging and set logs dir and/or logs file name;" + Environment.NewLine);
-                        Console.WriteLine("\"-h\" - for get help;" + Environment.NewLine);
-                        Console.WriteLine("\"-q\" - for quite." + Environment.NewLine);
+                        Console.WriteLine("-e:<SentinelEMSUrl>      Set EMS Url for activation. Mandatory for \"-a\" & \"-i\"." + Environment.NewLine);
+                        Console.WriteLine("-p:<PathForSave>         Set path for save something. Mandatory for \"-c\" & \"-f\"." + Environment.NewLine);
+                        Console.WriteLine("-t:<Target>              Set target of Key." + Environment.NewLine);
+                        Console.WriteLine("-l                       Start logging and set logs dir and/or logs file name." + Environment.NewLine);
+                        Console.WriteLine("-h                       Get help." + Environment.NewLine);
+                        Console.WriteLine("-q                       Quite." + Environment.NewLine);
+                        Console.WriteLine(Environment.NewLine);
+                        Console.WriteLine("Sample's: " + Environment.NewLine);
+                        Console.WriteLine("1) dotnet cmdrus.dll -a:<ProductKey> -e:http://emsurl:8080/ems -p:License.v2c -t:<KeyIdForUpdate> -l:LogFilePath" + Path.DirectorySeparatorChar + "LogFile.log" + Environment.NewLine);
+                        Console.WriteLine("2) dotnet cmdrus.dll -a:<ProductKey> -e:http://emsurl:8080/ems -p:License.v2c -t:KeyStatePath" + Path.DirectorySeparatorChar + "KeyState.c2v -l:LogFilePath" + Path.DirectorySeparatorChar + "LogFile.log" + Environment.NewLine);
+                        Console.WriteLine("3) dotnet cmdrus.dll -a:<ProductKey> -e:http://emsurl:8080/ems -p:License.v2c -l:LogFilePath" + Path.DirectorySeparatorChar + "LogFile.log" + Environment.NewLine);
+                        Console.WriteLine("4) dotnet cmdrus.dll -i:<ProductKey> -e:http://emsurl:8080/ems -p:KeyInfo.txt -l:LogFile.log" + Environment.NewLine);
+                        Console.WriteLine("5) dotnet cmdrus.dll -c -t:<KeyId> -p:KeyState.c2v -l:LogFile.log" + Environment.NewLine);
+                        Console.WriteLine("6) dotnet cmdrus.dll -c -p:KeyStatePath" + Path.DirectorySeparatorChar + "KeyState.c2v -l" + Environment.NewLine);
+                        Console.WriteLine("7) dotnet cmdrus.dll -f -p:FingerPrint.c2v -l" + Environment.NewLine);
+                        Console.WriteLine("8) dotnet cmdrus.dll -u:LicenseFilePath" + Path.DirectorySeparatorChar + "LicenseFile.v2c -l" + Environment.NewLine);
+
                         return;
                 }
             }
             #endregion
+
+            Console.WriteLine("Result: Successfully!" + Environment.NewLine);
         }
 
         public static string SwitchFormat(bool isNewKey)
@@ -532,7 +605,7 @@ namespace CMDRus
         public static string GetInfo(string vCode, bool isNew = true, string keyId = null)
         {
             string info = null;
-            status = Hasp.GetInfo(SwitchScope(keyId), SwitchFormat(isNew), ReturnVendorCode(), ref info);
+            status = Hasp.GetInfo(SwitchScope(keyId), SwitchFormat(isNew), vCode, ref info);
 
             if (HaspStatus.StatusOk != status)
             {
