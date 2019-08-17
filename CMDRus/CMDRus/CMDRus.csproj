@@ -15,6 +15,9 @@
 - Apply update;
 - Get info about Product Key;
 - Activate Product Key.</Description>
+    <PackOnBuild>true</PackOnBuild>
+    <PackageId>aaa</PackageId>
+    <PackageVersion>0.1</PackageVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(RunConfiguration)' == 'Default' ">
@@ -34,5 +37,13 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="hasp_net_core" Version="2.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="hasp_net_core.2.0.1.nupkg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="hasp_net_core.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

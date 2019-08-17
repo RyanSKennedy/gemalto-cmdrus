@@ -560,7 +560,7 @@ namespace CMDRus
             }
             #endregion
 
-            Console.WriteLine("Result: Successfully!" + Environment.NewLine);
+            Console.WriteLine("Result: Successfully! " + Environment.NewLine);
         }
 
         public static string SwitchFormat(bool isNewKey)
@@ -650,22 +650,12 @@ namespace CMDRus
 
             try
             {
-                using (System.IO.File.Create(path))
-                {
-                    try
-                    {
-                        System.IO.File.WriteAllText(path, value.ToString(), System.Text.Encoding.UTF8);
-                        return "OK";
-                    }
-                    catch (Exception exl2)
-                    {
-                        return "Can't append data in file. Error: " + exl2.Message;
-                    }
-                }
+                System.IO.File.WriteAllText(path, value.ToString(), System.Text.Encoding.UTF8);
+                return "OK";
             }
-            catch (Exception exl1)
+            catch (Exception ex)
             {
-                return "Can't create file. Error: " + exl1.Message;
+                return "Can't create or append data in file. Error: " + ex.Message;
             }
         }
 
