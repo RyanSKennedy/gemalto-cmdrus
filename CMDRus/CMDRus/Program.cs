@@ -10,6 +10,7 @@ using System.IO;
 using System.Text;
 using System.Linq;
 using MyLogClass;
+using MyStaticVariable;
 
 namespace CMDRus
 {
@@ -32,11 +33,12 @@ namespace CMDRus
     class Program
     {
         private static string pKey = "";
-        private static bool logIsEnabled;
+        private static bool logIsEnabled = false;
         private static bool targetIsRemote;
         private static string pathForSave = "";
         private static string pathForLog = "";
         private static string c2v = "";
+        private static string id = "";
         private static string action = "";
         public static bool logsFileIsExist;
         private static HaspStatus status;
@@ -48,6 +50,9 @@ namespace CMDRus
             { "i", 0 },
             { "f", 0 },
             { "u", 0 },
+            { "id", 0 },
+            { "fetch", 0 },
+            { "sync", 0 },
             { "l", 2 },
             { "p", 1 },
             { "e", 1 },
@@ -71,17 +76,20 @@ namespace CMDRus
             if (args == null || args.Length <= 0)
             {
                 Console.WriteLine("Input: " + Environment.NewLine +
-                              "a - for send activation request;" + Environment.NewLine +
-                              "c - for get C2V from exist key (if more then one key in system, please set Key ID);" + Environment.NewLine +
-                              "i - for get info about ProductKey;" + Environment.NewLine +
-                              "f - for get Fingerprint;" + Environment.NewLine +
-                              "u - for apply update;" + Environment.NewLine +
-                              "l - (Optional) advanced parameter for set logs dir and logs file name;" + Environment.NewLine +
-                              "p - (Optional) advanced parameter for set path for save something;" + Environment.NewLine +
-                              "e - (Optional) advanced parameter for set EMS Url for activation;" + Environment.NewLine +
-                              "t - (Optional) advanced parameter for set of target Key;" + Environment.NewLine +
-                              "q - for Quite;" + Environment.NewLine +
-                              "h - for Help." + Environment.NewLine);
+                              "a   -----   for send activation request;" + Environment.NewLine +
+                              "c   -----   for get C2V from exist key (if more then one key in system, please set Key ID);" + Environment.NewLine +
+                              "i   -----   for get info about ProductKey;" + Environment.NewLine +
+                              "f   -----   for get Fingerprint;" + Environment.NewLine +
+                              "u   -----   for apply update;" + Environment.NewLine +
+                              "id  -----   (In Roadmap) for get ID from PC, using for Rehosting exist SL key (should be done on aceptor PC side);" + Environment.NewLine +
+                              "fetch   -   (In Roadmap) for get license update for exist key (if more then one key in system, please set Key ID);" + Environment.NewLine +
+                              "sync   --   (In Roadmap) for sync current state of exist key with Sentinel EMS (if more then one key in system, please set Key ID);" + Environment.NewLine +
+                              "l   -----   (Optional) advanced parameter for set logs dir and logs file name;" + Environment.NewLine +
+                              "p   -----   (Optional) advanced parameter for set path for save something;" + Environment.NewLine +
+                              "e   -----   (Optional) advanced parameter for set EMS Url;" + Environment.NewLine +
+                              "t   -----   (Optional) advanced parameter for set of target Key;" + Environment.NewLine +
+                              "q   -----   for Quite;" + Environment.NewLine +
+                              "h   -----   for Help." + Environment.NewLine);
 
                 Console.WriteLine(Environment.NewLine + "/-------------------------/" + Environment.NewLine);
 
@@ -162,7 +170,7 @@ namespace CMDRus
                     break;
             }
 
-            if (numberOfZeroLevelCommand > 1)
+            if (numberOfZeroLevelCommand > 1 || numberOfZeroLevelCommand == 0)
             {
                 Console.WriteLine("Error: incompatible commands set!" + Environment.NewLine);
                 userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
@@ -323,6 +331,41 @@ namespace CMDRus
                             break;
                         }
                         break;
+
+                    case "id":
+                        //if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "e").First().Key))
+                        if (userCommands.Where(x => x.Value.Key == "e").Count() > 0)
+                            userCommands.Remove(userCommands.Where(x => x.Value.Key == "e").First().Key);
+
+                        //if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "t").First().Key))
+                        if (userCommands.Where(x => x.Value.Key == "t").Count() > 0)
+                            userCommands.Remove(userCommands.Where(x => x.Value.Key == "t").First().Key);
+
+                        //if (!userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "p").First().Key) || userCommands.Where(x => x.Value.Key == "p").First().Value.Value == "")
+                        if (userCommands.Where(x => x.Value.Key == "p").Count() <= 0 || userCommands.Where(x => x.Value.Key == "p").First().Value.Value == "")
+                        {
+                            userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
+                            break;
+                        }
+                        break;
+
+                    case "fetch":
+                        //if (!userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "e").First().Key) || userCommands.Where(x => x.Value.Key == "e").First().Value.Value == "")
+                        if (userCommands.Where(x => x.Value.Key == "e").Count() <= 0 || userCommands.Where(x => x.Value.Key == "e").First().Value.Value == "")
+                        {
+                            userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
+                            break;
+                        }
+                        break;
+
+                    case "sync":
+                        //if (!userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "e").First().Key) || userCommands.Where(x => x.Value.Key == "e").First().Value.Value == "")
+                        if (userCommands.Where(x => x.Value.Key == "e").Count() <= 0 || userCommands.Where(x => x.Value.Key == "e").First().Value.Value == "")
+                        {
+                            userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
+                            break;
+                        }
+                        break;
                 }
             }
             #endregion
@@ -349,7 +392,9 @@ namespace CMDRus
                                   "<comments></comments>" +
                                "</activationInput>" +
                             "</activation>";
+
             RequestData res = new RequestData();
+            KeyValuePair<string, string> result = new KeyValuePair<string, string>("def", "");
             //userCommands.Reverse();
             foreach (var el in userCommands.Reverse())
             {
@@ -362,7 +407,8 @@ namespace CMDRus
                         if (String.IsNullOrEmpty(tmpC2V))
                         {
                             if (logIsEnabled) Log.Write("Try to get Target...");
-                            tmpC2V = GetInfo(ReturnVendorCode(), true, null);
+                            result = GetInfo(ReturnVendorCode(), "fp", null);
+                            tmpC2V = result.Value;
                         }
                         if (tmpC2V.Contains("hasp_info"))
                         {
@@ -378,7 +424,7 @@ namespace CMDRus
                                 if (!targetIsRemote)
                                 {
                                     if (logIsEnabled) Log.Write("Try to apply license update...");
-                                    updateStatus = Update(licXml.Descendants("AID").FirstOrDefault().Value);
+                                    updateStatus = Update(licXml.Descendants("AID").FirstOrDefault().Value).Key;
                                     if (updateStatus == "0")
                                         if (logIsEnabled) Log.Write("Apply license update was successfully!");
                                         else
@@ -399,7 +445,7 @@ namespace CMDRus
                         }
                         else
                         {
-                            if (logIsEnabled) Log.Write("Error: " + tmpC2V);
+                            if (logIsEnabled) Log.Write("Error: " + (result.Key != "def" ? result.Key : tmpC2V));
                         }
                         break;
 
@@ -407,7 +453,8 @@ namespace CMDRus
                         if (String.IsNullOrEmpty(tmpC2V))
                         {
                             if (logIsEnabled) Log.Write("Try to get C2V...");
-                            tmpC2V = GetInfo(ReturnVendorCode(), false, null);
+                            result = GetInfo(ReturnVendorCode(), "c2v", null);
+                            tmpC2V = result.Value;
                         }
                         if (tmpC2V.Contains("hasp_info"))
                         {
@@ -419,7 +466,9 @@ namespace CMDRus
                         }
                         else
                         {
-                            if (logIsEnabled) Log.Write("Error: " + tmpC2V);
+                            if (logIsEnabled) Log.Write("Error: " + (result.Key != "def" ? result.Key : tmpC2V));
+                            Console.WriteLine("Error: " + (result.Key != "def" ? result.Key : tmpC2V) + Environment.NewLine);
+                            return;
                         }
                         break;
 
@@ -459,7 +508,8 @@ namespace CMDRus
 
                     case "f":
                         if (logIsEnabled) Log.Write("Try to get Fingerprint...");
-                        c2v = GetInfo(ReturnVendorCode(), true, null);
+                        result = GetInfo(ReturnVendorCode(), "fp", null);
+                        c2v = result.Value;
                         if (c2v.Contains("hasp_info"))
                         {
                             if (logIsEnabled) Log.Write("Fingerprint is: " + c2v);
@@ -469,17 +519,77 @@ namespace CMDRus
                         }
                         else
                         {
-                            if (logIsEnabled) Log.Write("Error: " + c2v);
+                            if (logIsEnabled) Log.Write("Error: " + result.Key);
+                            Console.WriteLine("Error: " + result.Key + Environment.NewLine);
+                            return;
                         }
                         break;
 
                     case "u":
                         if (logIsEnabled) Log.Write("Try to apply license update...");
-                        updateStatus = Update(LoadFile(PathBuilder(el.Value.Value, el.Value.Key, el.Value.Key)));
+                        result = Update(LoadFile(PathBuilder(el.Value.Value, el.Value.Key, el.Value.Key)));
+                        updateStatus = result.Key;
                         if (updateStatus == "0")
                             if (logIsEnabled) Log.Write("Apply license update was successfully!");
                             else
                             if (logIsEnabled) Log.Write("Apply update error: " + updateStatus);
+                        break;
+
+                    case "id":
+                        if (logIsEnabled) Log.Write("Try to get ID file...");
+                        result = GetInfo(ReturnVendorCode(), "id", null);
+                        id = result.Value;
+                        if (!String.IsNullOrEmpty(id))
+                        {
+                            if (logIsEnabled) Log.Write("File ID is: " + id);
+                            if (logIsEnabled) Log.Write("Try to Save result...");
+                            savingResult = SaveFile(pathForSave, id);
+                            if (logIsEnabled) Log.Write("Result state: " + savingResult);
+                        }
+                        else
+                        {
+                            if (logIsEnabled) Log.Write("Error: " + result.Key);
+                            Console.WriteLine("Error: " + result.Key + Environment.NewLine);
+                            return;
+                        }
+                        break;
+
+                    case "fetch":
+                        if (logIsEnabled) Log.Write("Try to get pending updates for key id:");
+                        if (String.IsNullOrEmpty(tmpC2V))
+                        {
+                            if (logIsEnabled) Log.Write("Try to get Target...");
+                            result = GetInfo(ReturnVendorCode(), "c2v", null);
+                            tmpC2V = result.Value;
+                        }
+                        if (tmpC2V.Contains("hasp_info"))
+                        {
+                            if (logIsEnabled) Log.Write("Taqrget C2V is: " + tmpC2V);
+
+                            res = GetRequest("activation/target.ws", baseEMSUrl, HttpMethod.Post, new KeyValuePair<string, string>("c2v", tmpC2V), res);
+                            if (res.httpClientResponseStatus == "OK")
+                            {
+                                if (logIsEnabled) Log.Write("Update data is: " + res.httpClientResponseStr);
+                                
+                                if (!String.IsNullOrEmpty(pathForSave))
+                                {
+                                    if (logIsEnabled) Log.Write("Try to save license in file...");
+                                    savingResult = SaveFile(pathForSave, res.httpClientResponseStr);
+                                    if (logIsEnabled) Log.Write("Saving result is: " + savingResult);
+                                }
+                            }
+                            else
+                            {
+                                if (logIsEnabled) Log.Write("Request error: " + res.httpClientResponseStatus);
+                            }
+                        }
+                        else
+                        {
+                            if (logIsEnabled) Log.Write("Error: " + (result.Key != "def" ? result.Key : tmpC2V));
+                        }
+                        break;
+
+                    case "sync":
                         break;
 
                     case "l":
@@ -490,7 +600,7 @@ namespace CMDRus
                             logIsEnabled = true;
                             newLog = new Log(pathForLog);
                         }
-                        if (logIsEnabled && setLogResult != "OK") Console.WriteLine(setLogResult + Environment.NewLine);
+                        if (logIsEnabled && setLogResult != "OK") Console.WriteLine("Set logs status error: " + setLogResult + Environment.NewLine);
                         break;
 
                     case "p":
@@ -508,11 +618,11 @@ namespace CMDRus
                         }
                         else if (!String.IsNullOrEmpty(el.Value.Value) && !el.Value.Value.Contains(Path.DirectorySeparatorChar))
                         {
-                            tmpC2V = GetInfo(ReturnVendorCode(), false, el.Value.Value);
+                            tmpC2V = GetInfo(ReturnVendorCode(), "c2v", el.Value.Value).Value;
                         }
                         else
                         {
-                            tmpC2V = GetInfo(ReturnVendorCode(), false, null);
+                            tmpC2V = GetInfo(ReturnVendorCode(), "c2v", null).Value;
                         }
                         break;
 
@@ -523,7 +633,7 @@ namespace CMDRus
                         break;
 
                     case "q":
-                        Console.WriteLine("Let's try close application..." + Environment.NewLine);
+                        Console.WriteLine("Let's try to close application..." + Environment.NewLine);
                         Environment.Exit(0);
                         return;
 
@@ -534,12 +644,22 @@ namespace CMDRus
                         Console.WriteLine("-a:<ProductKey>          Send activation request." + Environment.NewLine);
                         Console.WriteLine("-i:<ProductKey>          Get info about ProductKey." + Environment.NewLine);
                         Console.WriteLine("-c                       Get C2V from exist key. If more then one key in system," + Environment.NewLine +
-                            "                         please set Key ID like: -t:<KeyID>" + Environment.NewLine);
+                                          "                         please set Key ID like: -t:<KeyID>" + Environment.NewLine);
                         Console.WriteLine("-f                       Get Fingerprint from PC." + Environment.NewLine);
-                        Console.WriteLine("-u:<PathToUpdateFile>    Apply update (supported files: *.v2c, *.alp, *.h2h, *.h2r)." + Environment.NewLine);
+                        Console.WriteLine("-u:<PathToUpdateFile>    Apply update (supported files: *.v2c, *.v2cp," + Environment.NewLine +
+                                          "                         *.alp, *.h2h, *.h2r)." + Environment.NewLine);
+                        Console.WriteLine("-id                      Get *.id from PC, using for Rehost." + Environment.NewLine);
+                        Console.WriteLine("-fetch                   Send request for check required update for existed key." + Environment.NewLine +
+                                          "                         If more then one key in system, please set Key ID like:" + Environment.NewLine +
+                                          "                         -t:<KeyID>" + Environment.NewLine);
+                        Console.WriteLine("-sync                    Send request with C2V for sync current state of the key" + Environment.NewLine +
+                                          "                         with Sentinel EMS. If more then one key in system," + Environment.NewLine +
+                                          "                         please set Key ID like: -t:<KeyID>" + Environment.NewLine);
                         Console.WriteLine("Additional(Optional) parameters: " + Environment.NewLine);
-                        Console.WriteLine("-e:<SentinelEMSUrl>      Set EMS Url for activation. Mandatory for \"-a\" & \"-i\"." + Environment.NewLine);
-                        Console.WriteLine("-p:<PathForSave>         Set path for save something. Mandatory for \"-c\" & \"-f\"." + Environment.NewLine);
+                        Console.WriteLine("-e:<SentinelEMSUrl>      Set EMS Url for activation. Mandatory for:" + Environment.NewLine +
+                                          "                         \"-a\", \"-i\", \"-fetch\" & \"-sync\"." + Environment.NewLine);
+                        Console.WriteLine("-p:<PathForSave>         Set path for save something. Mandatory for:" + Environment.NewLine +
+                                          "                         \"-c\", \"-f\" & \"-id\"." + Environment.NewLine);
                         Console.WriteLine("-t:<Target>              Set target of Key." + Environment.NewLine);
                         Console.WriteLine("-l                       Start logging and set logs dir and/or logs file name." + Environment.NewLine);
                         Console.WriteLine("-h                       Get help." + Environment.NewLine);
@@ -554,6 +674,9 @@ namespace CMDRus
                         Console.WriteLine("6) dotnet cmdrus.dll -c -p:KeyStatePath" + Path.DirectorySeparatorChar + "KeyState.c2v -l" + Environment.NewLine);
                         Console.WriteLine("7) dotnet cmdrus.dll -f -p:FingerPrint.c2v -l" + Environment.NewLine);
                         Console.WriteLine("8) dotnet cmdrus.dll -u:LicenseFilePath" + Path.DirectorySeparatorChar + "LicenseFile.v2c -l" + Environment.NewLine);
+                        Console.WriteLine("9) dotnet cmdrus.dll -id -p:DeviceID.id -l" + Environment.NewLine);
+                        Console.WriteLine("10) dotnet cmdrus.dll -fetch -e:http://emsurl:8080/ems -t:<KeyId> -p:PendingUpdates.v2cp -l" + Environment.NewLine);
+                        Console.WriteLine("11) dotnet cmdrus.dll -sync -e:http://emsurl:8080/ems -t:<KeyId> -l" + Environment.NewLine);
 
                         return;
                 }
@@ -569,6 +692,32 @@ namespace CMDRus
                 return "<haspformat format=\"host_fingerprint\"/>";
             else
                 return "<haspformat format=\"updateinfo\"/>";
+        }
+
+        public static string SwitchFormat(string action)
+        {
+            switch (action)
+            {
+                case "fp":
+                    return "<haspformat format=\"host_fingerprint\"/>";
+
+                case "c2v":
+                    return "<haspformat format=\"updateinfo\"/>";
+
+                case "id":
+                    return "<haspformat root=\"location\">" + 
+                           "    <license_manager>" + 
+                           "        <attribute name=\"id\"/>" + 
+                           "        <attribute name=\"time\"/>" + 
+                           "        <element name=\"hostname\"/>" +
+                           "        <element name=\"version\"/>" + 
+                           "        <element name=\"host_fingerprint\"/>" +
+                           "    </license_manager>" +
+                           "</haspformat >";
+
+                default:
+                    return "";
+            }
         }
 
         public static string SwitchScope(string key = null)
@@ -588,40 +737,31 @@ namespace CMDRus
 
         public static string ReturnVendorCode()
         {
-            return "AzIceaqfA1hX5wS+M8cGnYh5ceevUnOZIzJBbXFD6dgf3tBkb9cvUF/Tkd/iKu2fsg9wAysYKw7RMAsV" +
-                                "vIp4KcXle/v1RaXrLVnNBJ2H2DmrbUMOZbQUFXe698qmJsqNpLXRA367xpZ54i8kC5DTXwDhfxWTOZrB" +
-                                "rh5sRKHcoVLumztIQjgWh37AzmSd1bLOfUGI0xjAL9zJWO3fRaeB0NS2KlmoKaVT5Y04zZEc06waU2r6" +
-                                "AU2Dc4uipJqJmObqKM+tfNKAS0rZr5IudRiC7pUwnmtaHRe5fgSI8M7yvypvm+13Wm4Gwd4VnYiZvSxf" +
-                                "8ImN3ZOG9wEzfyMIlH2+rKPUVHI+igsqla0Wd9m7ZUR9vFotj1uYV0OzG7hX0+huN2E/IdgLDjbiapj1" +
-                                "e2fKHrMmGFaIvI6xzzJIQJF9GiRZ7+0jNFLKSyzX/K3JAyFrIPObfwM+y+zAgE1sWcZ1YnuBhICyRHBh" +
-                                "aJDKIZL8MywrEfB2yF+R3k9wFG1oN48gSLyfrfEKuB/qgNp+BeTruWUk0AwRE9XVMUuRbjpxa4YA67SK" +
-                                "unFEgFGgUfHBeHJTivvUl0u4Dki1UKAT973P+nXy2O0u239If/kRpNUVhMg8kpk7s8i6Arp7l/705/bL" +
-                                "Cx4kN5hHHSXIqkiG9tHdeNV8VYo5+72hgaCx3/uVoVLmtvxbOIvo120uTJbuLVTvT8KtsOlb3DxwUrwL" +
-                                "zaEMoAQAFk6Q9bNipHxfkRQER4kR7IYTMzSoW5mxh3H9O8Ge5BqVeYMEW36q9wnOYfxOLNw6yQMf8f9s" +
-                                "JN4KhZty02xm707S7VEfJJ1KNq7b5pP/3RjE0IKtB2gE6vAPRvRLzEohu0m7q1aUp8wAvSiqjZy7FLaT" +
-                                "tLEApXYvLvz6PEJdj4TegCZugj7c8bIOEqLXmloZ6EgVnjQ7/ttys7VFITB3mazzFiyQuKf4J6+b/a/Y";
+            return MyStaticVariable.MyStaticVariable.vendorCode["DEMOMA"];
         }
 
-        public static string GetInfo(string vCode, bool isNew = true, string keyId = null)
+        public static KeyValuePair<string, string> GetInfo(string vCode, bool isNew = true, string keyId = null)
         {
             string info = null;
             status = Hasp.GetInfo(SwitchScope(keyId), SwitchFormat(isNew), vCode, ref info);
 
-            if (HaspStatus.StatusOk != status)
-            {
-                //handle error
-                return status.ToString();
-            }
-
-            return info;
+            return new KeyValuePair<string, string>(status.ToString(), info); 
         }
 
-        public static string Update(string update)
+        public static KeyValuePair<string, string> GetInfo(string vCode, string action, string keyId = null)
+        {
+            string info = null;
+            status = Hasp.GetInfo(SwitchScope(keyId), SwitchFormat(action), vCode, ref info);
+
+            return new KeyValuePair<string, string>(status.ToString(), info);
+        }
+
+        public static KeyValuePair<string, string> Update(string update)
         {
             string ack = null;
             status = Hasp.Update(update, ref ack);
 
-            return status.ToString();
+            return new KeyValuePair<string, string>(status.ToString(), ack);
         }
 
         public static string GetBaseDir()
@@ -699,7 +839,7 @@ namespace CMDRus
                 fileName += GetBaseDir() +
                     Path.DirectorySeparatorChar +
                     "new_" +
-                    System.DateTime.UtcNow.Millisecond +
+                    System.DateTime.UtcNow.ToLocalTime() +
                     "_";
             else if (!basePath.Contains(Path.DirectorySeparatorChar))
                 fileName += GetBaseDir() +
@@ -728,6 +868,14 @@ namespace CMDRus
                         fileName += "pk_info.txt";
                         break;
 
+                    case "id":
+                        fileName += "device_id.id";
+                        break;
+
+                    case "fetch":
+                        fileName += "pending_updates.v2cp";
+                        break;
+
                     default:
                         break;
                 }
@@ -747,7 +895,8 @@ namespace CMDRus
                 @"loginByProductKey.ws",
                 @"activation/target.ws",
                 @"productKey/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}.ws",
-                @"productKey/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}/activation.ws"
+                @"productKey/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}/activation.ws",
+                @"target.ws" // new request (need to be implemented)
             };
 
             Regex regex;
