@@ -248,7 +248,6 @@ namespace CMDRus
                             break;
                         }
 
-                        //if (!userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "e").First().Key) || userCommands.Where(x => x.Value.Key == "e").First().Value.Value == "")
                         if (userCommands.Where(x => x.Value.Key == "e").Count() <= 0 || userCommands.Where(x => x.Value.Key == "e").First().Value.Value == "")
                         {
                             userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
@@ -257,7 +256,6 @@ namespace CMDRus
                         break;
 
                     case "i":
-                        //if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "t").First().Key))
                         if (userCommands.Where(x => x.Value.Key == "t").Count() > 0)
                             userCommands.Remove(userCommands.Where(x => x.Value.Key == "t").First().Key);
 
@@ -267,7 +265,6 @@ namespace CMDRus
                             break;
                         }
 
-                        //if (!userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "e").First().Key) || userCommands.Where(x => x.Value.Key == "e").First().Value.Value == "")
                         if (userCommands.Where(x => x.Value.Key == "e").Count() <= 0 || userCommands.Where(x => x.Value.Key == "e").First().Value.Value == "")
                         {
                             userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
@@ -276,52 +273,25 @@ namespace CMDRus
                         break;
 
                     case "c":
-                        //if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "e").First().Key))
                         if (userCommands.Where(x => x.Value.Key == "e").Count() > 0)
                             userCommands.Remove(userCommands.Where(x => x.Value.Key == "e").First().Key);
-
-                        //if (!userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "p").First().Key) || userCommands.Where(x => x.Value.Key == "p").First().Value.Value == "")
-                        if (userCommands.Where(x => x.Value.Key == "p").Count() <= 0 || userCommands.Where(x => x.Value.Key == "p").First().Value.Value == "")
-                        {
-                            userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
-                            break;
-                        }
-
-                        //if (el.Value.Value == "" && (!userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "t").First().Key) || userCommands.Where(x => x.Value.Key == "t").First().Value.Value == ""))
-                        //if (el.Value.Value == "" && (userCommands.Where(x => x.Value.Key == "t").Count() <= 0 || userCommands.Where(x => x.Value.Key == "t").First().Value.Value == ""))
-                        //{
-                        //    userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
-                        //    break;
-                        //}
                         break;
 
                     case "f":
-                        //if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "e").First().Key))
                         if (userCommands.Where(x => x.Value.Key == "e").Count() > 0)
                             userCommands.Remove(userCommands.Where(x => x.Value.Key == "e").First().Key);
 
-                        //if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "t").First().Key))
                         if (userCommands.Where(x => x.Value.Key == "t").Count() > 0)
                             userCommands.Remove(userCommands.Where(x => x.Value.Key == "t").First().Key);
-
-                        //if (!userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "p").First().Key) || userCommands.Where(x => x.Value.Key == "p").First().Value.Value == "")
-                        if (userCommands.Where(x => x.Value.Key == "p").Count() <= 0 || userCommands.Where(x => x.Value.Key == "p").First().Value.Value == "")
-                        {
-                            userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
-                            break;
-                        }
                         break;
 
                     case "u":
-                        //if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "e").First().Key))
                         if (userCommands.Where(x => x.Value.Key == "e").Count() > 0)
                             userCommands.Remove(userCommands.Where(x => x.Value.Key == "e").First().Key);
 
-                        //if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "p").First().Key))
                         if (userCommands.Where(x => x.Value.Key == "p").Count() > 0)
                             userCommands.Remove(userCommands.Where(x => x.Value.Key == "p").First().Key);
 
-                        //if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "t").First().Key))
                         if (userCommands.Where(x => x.Value.Key == "t").Count() > 0)
                             userCommands.Remove(userCommands.Where(x => x.Value.Key == "t").First().Key);
 
@@ -333,24 +303,15 @@ namespace CMDRus
                         break;
 
                     case "id":
-                        //if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "e").First().Key))
                         if (userCommands.Where(x => x.Value.Key == "e").Count() > 0)
                             userCommands.Remove(userCommands.Where(x => x.Value.Key == "e").First().Key);
 
-                        //if (userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "t").First().Key))
                         if (userCommands.Where(x => x.Value.Key == "t").Count() > 0)
                             userCommands.Remove(userCommands.Where(x => x.Value.Key == "t").First().Key);
 
-                        //if (!userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "p").First().Key) || userCommands.Where(x => x.Value.Key == "p").First().Value.Value == "")
-                        if (userCommands.Where(x => x.Value.Key == "p").Count() <= 0 || userCommands.Where(x => x.Value.Key == "p").First().Value.Value == "")
-                        {
-                            userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
-                            break;
-                        }
                         break;
 
                     case "fetch":
-                        //if (!userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "e").First().Key) || userCommands.Where(x => x.Value.Key == "e").First().Value.Value == "")
                         if (userCommands.Where(x => x.Value.Key == "e").Count() <= 0 || userCommands.Where(x => x.Value.Key == "e").First().Value.Value == "")
                         {
                             userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
@@ -359,7 +320,6 @@ namespace CMDRus
                         break;
 
                     case "sync":
-                        //if (!userCommands.ContainsKey(userCommands.Where(x => x.Value.Key == "e").First().Key) || userCommands.Where(x => x.Value.Key == "e").First().Value.Value == "")
                         if (userCommands.Where(x => x.Value.Key == "e").Count() <= 0 || userCommands.Where(x => x.Value.Key == "e").First().Value.Value == "")
                         {
                             userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
@@ -395,7 +355,6 @@ namespace CMDRus
 
             RequestData res = new RequestData();
             KeyValuePair<string, string> result = new KeyValuePair<string, string>("def", "");
-            //userCommands.Reverse();
             foreach (var el in userCommands.Reverse())
             {
                 switch (el.Value.Key)
@@ -511,8 +470,8 @@ namespace CMDRus
                         result = GetInfo(ReturnVendorCode(), "fp", null);
                         c2v = result.Value;
                         if (c2v.Contains("hasp_info"))
-                        {
-                            if (logIsEnabled) Log.Write("Fingerprint is: " + c2v);
+                        { 
+                            if (logIsEnabled) Log.Write("Fingerprint is: " + Environment.NewLine + (String.IsNullOrWhiteSpace(c2v.Substring(c2v.Length - 1)) ? c2v.Remove(c2v.Length - 1) : c2v));
                             if (logIsEnabled) Log.Write("Try to Save result...");
                             savingResult = SaveFile(pathForSave, c2v);
                             if (logIsEnabled) Log.Write("Result state: " + savingResult);
@@ -686,14 +645,6 @@ namespace CMDRus
             Console.WriteLine("Result: Successfully! " + Environment.NewLine);
         }
 
-        public static string SwitchFormat(bool isNewKey)
-        {
-            if (isNewKey)
-                return "<haspformat format=\"host_fingerprint\"/>";
-            else
-                return "<haspformat format=\"updateinfo\"/>";
-        }
-
         public static string SwitchFormat(string action)
         {
             switch (action)
@@ -740,14 +691,6 @@ namespace CMDRus
             return MyStaticVariable.MyStaticVariable.vendorCode["DEMOMA"];
         }
 
-        public static KeyValuePair<string, string> GetInfo(string vCode, bool isNew = true, string keyId = null)
-        {
-            string info = null;
-            status = Hasp.GetInfo(SwitchScope(keyId), SwitchFormat(isNew), vCode, ref info);
-
-            return new KeyValuePair<string, string>(status.ToString(), info); 
-        }
-
         public static KeyValuePair<string, string> GetInfo(string vCode, string action, string keyId = null)
         {
             string info = null;
@@ -785,7 +728,9 @@ namespace CMDRus
         {
             if (System.IO.File.Exists(path))
             {
-                path = path.Insert(path.LastIndexOf(Path.DirectorySeparatorChar), "new_" + System.DateTime.UtcNow.Millisecond + "_");
+                path = path.Insert(path.LastIndexOf(Path.DirectorySeparatorChar), "new_" +
+                    string.Format("{0:dd-MM-yyyy_HH-mm-ss-fff}", DateTime.Now) +
+                    "_");
             }
 
             try
@@ -839,7 +784,7 @@ namespace CMDRus
                 fileName += GetBaseDir() +
                     Path.DirectorySeparatorChar +
                     "new_" +
-                    System.DateTime.UtcNow.ToLocalTime() +
+                    string.Format("{0:dd-MM-yyyy_HH-mm-ss-fff}", DateTime.Now) + 
                     "_";
             else if (!basePath.Contains(Path.DirectorySeparatorChar))
                 fileName += GetBaseDir() +
