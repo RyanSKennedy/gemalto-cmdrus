@@ -1,0 +1,29 @@
+{
+  "profiles": {
+    "CMDRus": {
+      "commandName": "Project"
+    },
+    "-h": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Windows\\System32\\cmd.exe",
+      "commandLineArgs": "/K \"dotnet \\\\Mac\\Home\\Desktop\\CMDRus\\CMDRus.dll -h\"",
+      "workingDirectory": "\\\\Mac\\Home\\Desktop\\CMDRus\\"
+    },
+    "-a": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Windows\\System32\\cmd.exe",
+      "commandLineArgs": "/K \"dotnet C:\\Users\\ryansk\\Desktop\\CMDRus\\CMDRus.dll -a:0071eb86-911c-40aa-a07b-552d23ce37a1 -e:http://localhost:8080/ems -p -l\"",
+      "workingDirectory": "C:\\Users\\ryansk\\Desktop\\CMDRus\\"
+    },
+    "-a (for Test)": {
+      "commandName": "Project",
+      "commandLineArgs": "-a:0071eb86-911c-40aa-a07b-552d23ce37a1 -e:http://localhost:8080/ems -p -l",
+      "workingDirectory": "C:\\Users\\ryansk\\Desktop\\CMDRus\\"
+    },
+    "-i (for Test)": {
+      "commandName": "Project",
+      "commandLineArgs": "-i:0071eb86-911c-40aa-a07b-552d23ce37a1 -e:http://localhost:8080/ems -p -l",
+      "workingDirectory": "C:\\Users\\ryansk\\Desktop\\CMDRus\\"
+    }
+  }
+}

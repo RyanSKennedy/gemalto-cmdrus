@@ -170,7 +170,7 @@ namespace CMDRus
                     break;
             }
 
-            if (numberOfZeroLevelCommand > 1 || numberOfZeroLevelCommand == 0)
+            if ((numberOfZeroLevelCommand > 1 || numberOfZeroLevelCommand == 0) && hasHightLevelCommand == false)
             {
                 Console.WriteLine("Error: incompatible commands set!" + Environment.NewLine);
                 userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
@@ -375,7 +375,8 @@ namespace CMDRus
                             actXml = actXml.Replace("XXX", tmpC2V);
                             if (logIsEnabled) Log.Write("Activation data: " + actXml);
                             if (logIsEnabled) Log.Write("Try to activate...");
-                            res = GetRequest(subReq, baseEMSUrl, HttpMethod.Post, new KeyValuePair<string, string>("activationXml", actXml));
+                            res = GetRequest("loginByProductKey.ws", baseEMSUrl, HttpMethod.Post, new KeyValuePair<string, string>("productKey", pKey));
+                            res = GetRequest(subReq, baseEMSUrl, HttpMethod.Post, new KeyValuePair<string, string>("activationXml", actXml), res);
                             if (res.httpClientResponseStatus == "OK")
                             {
                                 if (logIsEnabled) Log.Write("Activation data is: " + res.httpClientResponseStr);
@@ -383,17 +384,21 @@ namespace CMDRus
                                 if (!targetIsRemote)
                                 {
                                     if (logIsEnabled) Log.Write("Try to apply license update...");
-                                    updateStatus = Update(licXml.Descendants("AID").FirstOrDefault().Value).Key;
-                                    if (updateStatus == "0")
+                                    updateStatus = Update(licXml.Descendants("activationString").FirstOrDefault().Value).Key;
+                                    if (updateStatus == "StatusOk")
+                                    {
                                         if (logIsEnabled) Log.Write("Apply license update was successfully!");
-                                        else
+                                    }
+                                    else
+                                    {
                                         if (logIsEnabled) Log.Write("Apply update error: " + updateStatus);
+                                    }  
                                 }
 
                                 if (!String.IsNullOrEmpty(pathForSave))
                                 {
                                     if (logIsEnabled) Log.Write("Try to save license in file...");
-                                    savingResult = SaveFile(pathForSave, licXml.Descendants("AID").FirstOrDefault().Value);
+                                    savingResult = SaveFile(pathForSave, licXml.Descendants("activationString").FirstOrDefault().Value);
                                     if (logIsEnabled) Log.Write("Saving result is: " + savingResult);
                                 }
                             }
@@ -417,7 +422,7 @@ namespace CMDRus
                         }
                         if (tmpC2V.Contains("hasp_info"))
                         {
-                            if (logIsEnabled) Log.Write("C2V is: " + tmpC2V);
+                            if (logIsEnabled) Log.Write("C2V is: " + Environment.NewLine + tmpC2V);
                             c2v = tmpC2V;
                             if (logIsEnabled) Log.Write("Try to Save result...");
                             savingResult = SaveFile(pathForSave, c2v);
@@ -488,10 +493,14 @@ namespace CMDRus
                         if (logIsEnabled) Log.Write("Try to apply license update...");
                         result = Update(LoadFile(PathBuilder(el.Value.Value, el.Value.Key, el.Value.Key)));
                         updateStatus = result.Key;
-                        if (updateStatus == "0")
+                        if (updateStatus == "StatusOk")
+                        {
                             if (logIsEnabled) Log.Write("Apply license update was successfully!");
-                            else
+                        }
+                        else
+                        {
                             if (logIsEnabled) Log.Write("Apply update error: " + updateStatus);
+                        }
                         break;
 
                     case "id":
@@ -500,7 +509,7 @@ namespace CMDRus
                         id = result.Value;
                         if (!String.IsNullOrEmpty(id))
                         {
-                            if (logIsEnabled) Log.Write("File ID is: " + id);
+                            if (logIsEnabled) Log.Write("File ID is: "+ Environment.NewLine + id);
                             if (logIsEnabled) Log.Write("Try to Save result...");
                             savingResult = SaveFile(pathForSave, id);
                             if (logIsEnabled) Log.Write("Result state: " + savingResult);
@@ -514,7 +523,7 @@ namespace CMDRus
                         break;
 
                     case "fetch":
-                        if (logIsEnabled) Log.Write("Try to get pending updates for key id:");
+                        if (logIsEnabled) Log.Write("Try to get pending updates for exist key");
                         if (String.IsNullOrEmpty(tmpC2V))
                         {
                             if (logIsEnabled) Log.Write("Try to get Target...");
@@ -773,7 +782,7 @@ namespace CMDRus
 
         private static string UrlBuilder(string emsUrl, string reqSubStr)
         {
-            return emsUrl + ((emsUrl.Last() == '/') ? "" : "/") + reqSubStr;
+            return emsUrl + ((emsUrl.Last() == '/') ? "" : "/") + (!emsUrl.Contains("v710/ws/") ? "v710/ws/" : "") + reqSubStr;
         }
 
         private static string PathBuilder(string basePath, string subCommand, string mainCommand)
