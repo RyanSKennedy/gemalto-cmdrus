@@ -41,6 +41,7 @@ namespace CMDRus
         private static string id = "";
         private static string action = "";
         public static bool logsFileIsExist;
+        public static bool globalResultIs = false;
         private static HaspStatus status;
         private static currentRequest cRequest;
         private static Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>> userCommands;
@@ -112,7 +113,7 @@ namespace CMDRus
                 if (el.Contains(':'))
                 {
                     var tmpSubCommand = elTmp.Split(':', 2);
-                    userCommands.Add(new KeyValuePair<int, int>(userCommands.Count, 10), new KeyValuePair<string, string>(tmpSubCommand[0], tmpSubCommand[1] ));
+                    userCommands.Add(new KeyValuePair<int, int>(userCommands.Count, 10), new KeyValuePair<string, string>(tmpSubCommand[0], tmpSubCommand[1]));
                 }
                 else
                 {
@@ -151,7 +152,7 @@ namespace CMDRus
                         hasHightLevelCommand = true;
                         break;
                     }
-                    else if (el.Value.Key == el2.Key && (el2.Value == 2 || el2.Value == 1)) 
+                    else if (el.Value.Key == el2.Key && (el2.Value == 2 || el2.Value == 1))
                     {
                         var tmpData = userCommands.Where(x => x.Value.Key == el.Value.Key).First();
                         userCommands.Remove(tmpData.Key);
@@ -163,7 +164,7 @@ namespace CMDRus
                         userCommands.Remove(tmpData.Key);
                         userCommands.Add(new KeyValuePair<int, int>(tmpData.Key.Key, el2.Value), tmpData.Value);
                         numberOfZeroLevelCommand++;
-                    }  
+                    }
                 }
 
                 if (hasHightLevelCommand)
@@ -239,7 +240,7 @@ namespace CMDRus
             #region Checking commands on integrity
             foreach (var el in userCommands.ToList())
             {
-                switch(el.Value.Key)
+                switch (el.Value.Key)
                 {
                     case "a":
                         if (el.Value.Value == "")
@@ -261,7 +262,7 @@ namespace CMDRus
 
                         if (el.Value.Value == "")
                         {
-                            userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int> (0, 3), new KeyValuePair<string, string>("h", "") } };
+                            userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
                             break;
                         }
 
@@ -371,40 +372,49 @@ namespace CMDRus
                         }
                         if (tmpC2V.Contains("hasp_info"))
                         {
-                            if (logIsEnabled) Log.Write("Taqrget C2V is: " + tmpC2V);
-                            actXml = actXml.Replace("XXX", tmpC2V);
-                            if (logIsEnabled) Log.Write("Activation data: " + actXml);
-                            if (logIsEnabled) Log.Write("Try to activate...");
+                            if (logIsEnabled) Log.Write("Try to login in to Sentinel EMS by Product key...");
                             res = GetRequest("loginByProductKey.ws", baseEMSUrl, HttpMethod.Post, new KeyValuePair<string, string>("productKey", pKey));
-                            res = GetRequest(subReq, baseEMSUrl, HttpMethod.Post, new KeyValuePair<string, string>("activationXml", actXml), res);
                             if (res.httpClientResponseStatus == "OK")
                             {
-                                if (logIsEnabled) Log.Write("Activation data is: " + res.httpClientResponseStr);
-                                XDocument licXml = XDocument.Parse(res.httpClientResponseStr);
-                                if (!targetIsRemote)
+                                actXml = actXml.Replace("XXX", tmpC2V);
+                                if (logIsEnabled) Log.Write("Activation data is:" + Environment.NewLine + actXml);
+                                if (logIsEnabled) Log.Write("Try to activate...");
+                                res = GetRequest(subReq, baseEMSUrl, HttpMethod.Post, new KeyValuePair<string, string>("activationXml", actXml), res);
+                                if (res.httpClientResponseStatus == "OK")
                                 {
-                                    if (logIsEnabled) Log.Write("Try to apply license update...");
-                                    updateStatus = Update(licXml.Descendants("activationString").FirstOrDefault().Value).Key;
-                                    if (updateStatus == "StatusOk")
+                                    if (logIsEnabled) Log.Write("Activation response is:" + Environment.NewLine + res.httpClientResponseStr);
+                                    XDocument licXml = XDocument.Parse(res.httpClientResponseStr);
+                                    if (!targetIsRemote)
                                     {
-                                        if (logIsEnabled) Log.Write("Apply license update was successfully!");
+                                        if (logIsEnabled) Log.Write("Try to apply license update...");
+                                        updateStatus = Update(licXml.Descendants("activationString").FirstOrDefault().Value).Key;
+                                        if (updateStatus == "StatusOk")
+                                        {
+                                            if (logIsEnabled) Log.Write("Apply license update was successfully!");
+                                        }
+                                        else
+                                        {
+                                            if (logIsEnabled) Log.Write("Apply update error: " + updateStatus);
+                                        }
                                     }
-                                    else
-                                    {
-                                        if (logIsEnabled) Log.Write("Apply update error: " + updateStatus);
-                                    }  
-                                }
 
-                                if (!String.IsNullOrEmpty(pathForSave))
+                                    if (!String.IsNullOrEmpty(pathForSave))
+                                    {
+                                        if (logIsEnabled) Log.Write("Try to save license in file...");
+                                        savingResult = SaveFile(pathForSave, licXml.Descendants("activationString").FirstOrDefault().Value);
+                                        if (logIsEnabled) Log.Write("Saving result is: " + savingResult);
+                                    }
+
+                                    globalResultIs = true;
+                                }
+                                else
                                 {
-                                    if (logIsEnabled) Log.Write("Try to save license in file...");
-                                    savingResult = SaveFile(pathForSave, licXml.Descendants("activationString").FirstOrDefault().Value);
-                                    if (logIsEnabled) Log.Write("Saving result is: " + savingResult);
+                                    if (logIsEnabled) Log.Write("Activation error: " + res.httpClientResponseStatus + " - " + res.httpClientResponseStr);
                                 }
                             }
                             else
                             {
-                                if (logIsEnabled) Log.Write("Activation error: " + res.httpClientResponseStatus);
+                                if (logIsEnabled) Log.Write("Login error: " + res.httpClientResponseStatus + " - " + res.httpClientResponseStr);
                             }
                         }
                         else
@@ -422,11 +432,13 @@ namespace CMDRus
                         }
                         if (tmpC2V.Contains("hasp_info"))
                         {
-                            if (logIsEnabled) Log.Write("C2V is: " + Environment.NewLine + tmpC2V);
+                            if (logIsEnabled) Log.Write("C2V is: " + Environment.NewLine + (String.IsNullOrWhiteSpace(tmpC2V.Substring(tmpC2V.Length - 1)) ? tmpC2V.Remove(tmpC2V.Length - 1) : tmpC2V));
                             c2v = tmpC2V;
                             if (logIsEnabled) Log.Write("Try to Save result...");
                             savingResult = SaveFile(pathForSave, c2v);
                             if (logIsEnabled) Log.Write("Result state: " + savingResult);
+
+                            globalResultIs = true;
                         }
                         else
                         {
@@ -449,24 +461,26 @@ namespace CMDRus
                             res = GetRequest(subReq, baseEMSUrl, HttpMethod.Get, new KeyValuePair<string, string>("productKey", pKey), res);
                             if (res.httpClientResponseStatus == "OK")
                             {
-                                if (logIsEnabled) Log.Write("Get info data: " + res.httpClientResponseStr);
+                                if (logIsEnabled) Log.Write("Get info data: " + Environment.NewLine + res.httpClientResponseStr);
                                 XDocument pkInfoXml = XDocument.Parse(res.httpClientResponseStr);
-                                Console.WriteLine("Product Key info: " + Environment.NewLine + pkInfoXml + Environment.NewLine);
+                                Console.WriteLine("Product Key info: " + Environment.NewLine + pkInfoXml);
                                 if (!String.IsNullOrEmpty(pathForSave))
                                 {
                                     if (logIsEnabled) Log.Write("Try to save Product key info in to file...");
                                     savingResult = SaveFile(pathForSave, res.httpClientResponseStr);
                                     if (logIsEnabled) Log.Write("Saving result is: " + savingResult);
                                 }
+
+                                globalResultIs = true;
                             }
                             else
                             {
-                                if (logIsEnabled) Log.Write("Activation error: " + res.httpClientResponseStatus);
+                                if (logIsEnabled) Log.Write("PK get info error: " + res.httpClientResponseStatus + " - " + res.httpClientResponseStr);
                             }
                         }
                         else
                         {
-                            if (logIsEnabled) Log.Write("Login error: " + res.httpClientResponseStatus);
+                            if (logIsEnabled) Log.Write("Login error: " + res.httpClientResponseStatus + " - " + res.httpClientResponseStr);
                         }
                         break;
 
@@ -475,11 +489,13 @@ namespace CMDRus
                         result = GetInfo(ReturnVendorCode(), "fp", null);
                         c2v = result.Value;
                         if (c2v.Contains("hasp_info"))
-                        { 
+                        {
                             if (logIsEnabled) Log.Write("Fingerprint is: " + Environment.NewLine + (String.IsNullOrWhiteSpace(c2v.Substring(c2v.Length - 1)) ? c2v.Remove(c2v.Length - 1) : c2v));
                             if (logIsEnabled) Log.Write("Try to Save result...");
                             savingResult = SaveFile(pathForSave, c2v);
                             if (logIsEnabled) Log.Write("Result state: " + savingResult);
+
+                            globalResultIs = true;
                         }
                         else
                         {
@@ -496,6 +512,8 @@ namespace CMDRus
                         if (updateStatus == "StatusOk")
                         {
                             if (logIsEnabled) Log.Write("Apply license update was successfully!");
+
+                            globalResultIs = true;
                         }
                         else
                         {
@@ -509,10 +527,12 @@ namespace CMDRus
                         id = result.Value;
                         if (!String.IsNullOrEmpty(id))
                         {
-                            if (logIsEnabled) Log.Write("File ID is: "+ Environment.NewLine + id);
+                            if (logIsEnabled) Log.Write("File ID is: " + Environment.NewLine + id);
                             if (logIsEnabled) Log.Write("Try to Save result...");
                             savingResult = SaveFile(pathForSave, id);
                             if (logIsEnabled) Log.Write("Result state: " + savingResult);
+
+                            globalResultIs = true;
                         }
                         else
                         {
@@ -523,7 +543,6 @@ namespace CMDRus
                         break;
 
                     case "fetch":
-                        if (logIsEnabled) Log.Write("Try to get pending updates for exist key");
                         if (String.IsNullOrEmpty(tmpC2V))
                         {
                             if (logIsEnabled) Log.Write("Try to get Target...");
@@ -532,23 +551,35 @@ namespace CMDRus
                         }
                         if (tmpC2V.Contains("hasp_info"))
                         {
-                            if (logIsEnabled) Log.Write("Taqrget C2V is: " + tmpC2V);
-
+                            if (logIsEnabled) Log.Write("Target C2V is: " + Environment.NewLine + (String.IsNullOrWhiteSpace(tmpC2V.Substring(tmpC2V.Length - 1)) ? tmpC2V.Remove(tmpC2V.Length - 1) : tmpC2V));
+                            if (logIsEnabled) Log.Write("Try to get pending updates for exist key");
                             res = GetRequest("activation/target.ws", baseEMSUrl, HttpMethod.Post, new KeyValuePair<string, string>("c2v", tmpC2V), res);
                             if (res.httpClientResponseStatus == "OK")
                             {
-                                if (logIsEnabled) Log.Write("Update data is: " + res.httpClientResponseStr);
-                                
-                                if (!String.IsNullOrEmpty(pathForSave))
+                                if (!res.httpClientResponseStr.Contains("No pending update"))
                                 {
-                                    if (logIsEnabled) Log.Write("Try to save license in file...");
-                                    savingResult = SaveFile(pathForSave, res.httpClientResponseStr);
-                                    if (logIsEnabled) Log.Write("Saving result is: " + savingResult);
+                                    if (logIsEnabled) Log.Write("Update data is: " + Environment.NewLine + res.httpClientResponseStr);
+
+                                    // Need add apply pending update: if target set like key id or didn't set
+                                    // ...
+
+                                    if (!String.IsNullOrEmpty(pathForSave))
+                                    {
+                                        if (logIsEnabled) Log.Write("Try to save license in file...");
+                                        savingResult = SaveFile(pathForSave, res.httpClientResponseStr);
+                                        if (logIsEnabled) Log.Write("Saving result is: " + savingResult);
+                                    }
                                 }
+                                else
+                                {
+                                    if (logIsEnabled) Log.Write("Fetch pending update response is: " + res.httpClientResponseStr);
+                                }
+
+                                globalResultIs = true;
                             }
                             else
                             {
-                                if (logIsEnabled) Log.Write("Request error: " + res.httpClientResponseStatus);
+                                if (logIsEnabled) Log.Write("Request error: " + res.httpClientResponseStatus + " - " + res.httpClientResponseStr);
                             }
                         }
                         else
@@ -651,7 +682,19 @@ namespace CMDRus
             }
             #endregion
 
-            Console.WriteLine("Result: Successfully! " + Environment.NewLine);
+            if (globalResultIs)
+            {
+                if (logIsEnabled) Log.Write("Global result: Successfully!");
+                Console.WriteLine("Global result: Successfully!" + Environment.NewLine);
+            }
+            else
+            {
+                if (logIsEnabled) Log.Write("Global result: BadRequest!");
+                Console.WriteLine("Global result: BadRequest!" + Environment.NewLine);
+            }
+
+            // Just for see results in console
+            if (true) Console.ReadLine();
         }
 
         public static string SwitchFormat(string action)
@@ -690,7 +733,7 @@ namespace CMDRus
             else
                 return "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" +
                         "<haspscope>" +
-                        "    <hasp id=\\" + key + "\" />" +
+                        "    <hasp id=\"" + key + "\" />" +
                         "</haspscope>" +
                         "";
         }
@@ -782,7 +825,17 @@ namespace CMDRus
 
         private static string UrlBuilder(string emsUrl, string reqSubStr)
         {
-            return emsUrl + ((emsUrl.Last() == '/') ? "" : "/") + (!emsUrl.Contains("v710/ws/") ? "v710/ws/" : "") + reqSubStr;
+            string fullEmsUrl = emsUrl;
+            fullEmsUrl += ((fullEmsUrl.Last() == '/') ? "" : "/");
+            fullEmsUrl += (!fullEmsUrl.Contains("ems") ? "ems" : "");
+            fullEmsUrl += ((fullEmsUrl.Last() == '/') ? "" : "/");
+            fullEmsUrl += (!fullEmsUrl.Contains("v710") ? "v710" : "");
+            fullEmsUrl += ((fullEmsUrl.Last() == '/') ? "" : "/");
+            fullEmsUrl += (!fullEmsUrl.Contains("ws") ? "ws" : "");
+            fullEmsUrl += ((fullEmsUrl.Last() == '/') ? "" : "/");
+            fullEmsUrl += reqSubStr;
+
+            return fullEmsUrl;
         }
 
         private static string PathBuilder(string basePath, string subCommand, string mainCommand)

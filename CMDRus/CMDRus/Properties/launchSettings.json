@@ -24,6 +24,26 @@
       "commandName": "Project",
       "commandLineArgs": "-i:0071eb86-911c-40aa-a07b-552d23ce37a1 -e:http://localhost:8080/ems -p -l",
       "workingDirectory": "C:\\Users\\ryansk\\Desktop\\CMDRus\\"
+    },
+    "-c (for Test)": {
+      "commandName": "Project",
+      "commandLineArgs": "-c -t:801208362896132946 -p -l",
+      "workingDirectory": "C:\\Users\\ryansk\\Desktop\\CMDRus\\"
+    },
+    "-f (for Test)": {
+      "commandName": "Project",
+      "commandLineArgs": "-f -p -l",
+      "workingDirectory": "C:\\Users\\ryansk\\Desktop\\CMDRus\\"
+    },
+    "-id (for Test)": {
+      "commandName": "Project",
+      "commandLineArgs": "-id -p -l",
+      "workingDirectory": "C:\\Users\\ryansk\\Desktop\\CMDRus\\"
+    },
+    "-fetch (for Test)": {
+      "commandName": "Project",
+      "commandLineArgs": "-fetch -t:925071760198313313 -e:http://localhost:8080/ems -p -l",
+      "workingDirectory": "C:\\Users\\ryansk\\Desktop\\CMDRus\\"
     }
   }
 }
