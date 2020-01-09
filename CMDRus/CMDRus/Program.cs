@@ -560,8 +560,22 @@ namespace CMDRus
                                 {
                                     if (logIsEnabled) Log.Write("Update data is: " + Environment.NewLine + res.httpClientResponseStr);
 
-                                    // Need add apply pending update: if target set like key id or didn't set
-                                    // ...
+                                    if ((userCommands.Where(x => x.Value.Key == "t").Count() == 0) || ((userCommands.Where(x => x.Value.Key == "t").Count() > 0) && (!String.IsNullOrEmpty(userCommands.Where(x => x.Value.Key == "t").FirstOrDefault().Value.Value) && (!userCommands.Where(x => x.Value.Key == "t").FirstOrDefault().Value.Value.Contains(Path.DirectorySeparatorChar)))))
+                                    {
+                                        if (logIsEnabled) Log.Write("Try to apply pending updates...");
+                                        result = Update(res.httpClientResponseStr);
+                                        updateStatus = result.Key;
+                                        if (updateStatus == "StatusOk")
+                                        {
+                                            if (logIsEnabled) Log.Write("Apply license update was successfully!");
+
+                                            globalResultIs = true;
+                                        }
+                                        else
+                                        {
+                                            if (logIsEnabled) Log.Write("Apply update error: " + updateStatus);
+                                        }
+                                    }
 
                                     if (!String.IsNullOrEmpty(pathForSave))
                                     {
@@ -589,6 +603,30 @@ namespace CMDRus
                         break;
 
                     case "sync":
+                        if (String.IsNullOrEmpty(tmpC2V))
+                        {
+                            if (logIsEnabled) Log.Write("Try to get Target...");
+                            result = GetInfo(ReturnVendorCode(), "c2v", null);
+                            tmpC2V = result.Value;
+                        }
+                        if (tmpC2V.Contains("hasp_info"))
+                        {
+                            if (logIsEnabled) Log.Write("Target C2V is: " + Environment.NewLine + (String.IsNullOrWhiteSpace(tmpC2V.Substring(tmpC2V.Length - 1)) ? tmpC2V.Remove(tmpC2V.Length - 1) : tmpC2V));
+                            if (logIsEnabled) Log.Write("Try to sync current state of exist key with Sentinel EMS database");
+                            res = GetRequest("target.ws", baseEMSUrl, HttpMethod.Post, new KeyValuePair<string, string>("Checkin", tmpC2V), res);
+                            if (res.httpClientResponseStatus == "OK")
+                            {
+                                // some actions...maybe...XD
+                            }
+                            else
+                            {
+                                if (logIsEnabled) Log.Write("Request error: " + res.httpClientResponseStatus + " - " + res.httpClientResponseStr);
+                            }
+                        }
+                        else
+                        {
+                            if (logIsEnabled) Log.Write("Error: " + (result.Key != "def" ? result.Key : tmpC2V));
+                        }
                         break;
 
                     case "l":
