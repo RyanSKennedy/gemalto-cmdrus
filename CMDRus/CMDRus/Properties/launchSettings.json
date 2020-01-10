@@ -47,7 +47,7 @@
     },
     "-sync (for Test)": {
       "commandName": "Project",
-      "commandLineArgs": "-sync -t:925071760198313313 -e:http://localhost:8080/ems -l",
+      "commandLineArgs": "-sync -login:admin -passwd:admin -t:925071760198313313 -e:http://localhost:8080/ems -l",
       "workingDirectory": "C:\\Users\\ryansk\\Desktop\\CMDRus\\"
     }
   }

@@ -37,6 +37,8 @@ namespace CMDRus
         private static bool targetIsRemote;
         private static string pathForSave = "";
         private static string pathForLog = "";
+        private static string emsLogin = "";
+        private static string emsPasswd = "";
         private static string c2v = "";
         private static string id = "";
         private static string action = "";
@@ -54,6 +56,8 @@ namespace CMDRus
             { "id", 0 },
             { "fetch", 0 },
             { "sync", 0 },
+            { "login", 1 },
+            { "passwd", 1 },
             { "l", 2 },
             { "p", 1 },
             { "e", 1 },
@@ -84,7 +88,9 @@ namespace CMDRus
                               "u   -----   for apply update;" + Environment.NewLine +
                               "id  -----   (In Roadmap) for get ID from PC, using for Rehosting exist SL key (should be done on aceptor PC side);" + Environment.NewLine +
                               "fetch   -   (In Roadmap) for get license update for exist key (if more then one key in system, please set Key ID);" + Environment.NewLine +
-                              "sync   --   (In Roadmap) for sync current state of exist key with Sentinel EMS (if more then one key in system, please set Key ID);" + Environment.NewLine +
+                              "sync   --   (In Roadmap) for sync current state of exist key with Sentinel EMS (if more then one key in system, please set Key ID). Should be using with parameters: \"login\"&\"passwd\";" + Environment.NewLine +
+                              "login   -   (Mandatory for main command: \"sync\") advanced parameter for set account for login in Sentinel EMS;" + Environment.NewLine +
+                              "passwd  -   (Mandatory for main command: \"sync\") advanced parameter for setting password for account which set by parameter \"login\";" + Environment.NewLine +
                               "l   -----   (Optional) advanced parameter for set logs dir and logs file name;" + Environment.NewLine +
                               "p   -----   (Optional) advanced parameter for set path for save something;" + Environment.NewLine +
                               "e   -----   (Optional) advanced parameter for set EMS Url;" + Environment.NewLine +
@@ -326,6 +332,18 @@ namespace CMDRus
                             userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
                             break;
                         }
+
+                        if (userCommands.Where(x => x.Value.Key == "login").Count() <= 0 || userCommands.Where(x => x.Value.Key == "login").First().Value.Value == "")
+                        {
+                            userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
+                            break;
+                        }
+
+                        if (userCommands.Where(x => x.Value.Key == "passwd").Count() <= 0 || userCommands.Where(x => x.Value.Key == "passwd").First().Value.Value == "")
+                        {
+                            userCommands = new Dictionary<KeyValuePair<int, int>, KeyValuePair<string, string>>() { { new KeyValuePair<int, int>(0, 3), new KeyValuePair<string, string>("h", "") } };
+                            break;
+                        }
                         break;
                 }
             }
@@ -353,6 +371,12 @@ namespace CMDRus
                                   "<comments></comments>" +
                                "</activationInput>" +
                             "</activation>";
+
+            string authXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                             "<authenticationDetail>" +
+                                "<userName>XXX_LOGIN_XXX</userName>" +
+                                "<password>XXX_PASSWD_XXX</password>" +
+                             "</authenticationDetail>";
 
             RequestData res = new RequestData();
             KeyValuePair<string, string> result = new KeyValuePair<string, string>("def", "");
@@ -611,22 +635,41 @@ namespace CMDRus
                         }
                         if (tmpC2V.Contains("hasp_info"))
                         {
-                            if (logIsEnabled) Log.Write("Target C2V is: " + Environment.NewLine + (String.IsNullOrWhiteSpace(tmpC2V.Substring(tmpC2V.Length - 1)) ? tmpC2V.Remove(tmpC2V.Length - 1) : tmpC2V));
-                            if (logIsEnabled) Log.Write("Try to sync current state of exist key with Sentinel EMS database");
-                            res = GetRequest("target.ws", baseEMSUrl, HttpMethod.Post, new KeyValuePair<string, string>("Checkin", tmpC2V), res);
+                            authXml = authXml.Replace("XXX_LOGIN_XXX", emsLogin);
+                            authXml = authXml.Replace("XXX_PASSWD_XXX", emsPasswd);
+                            if (logIsEnabled) Log.Write("Try to login in to Sentinel EMS by login & password...");
+                            res = GetRequest("login.ws", baseEMSUrl, HttpMethod.Post, new KeyValuePair<string, string>("authenticationDetail", authXml));
                             if (res.httpClientResponseStatus == "OK")
                             {
-                                // some actions...maybe...XD
+                                if (logIsEnabled) Log.Write("Target C2V is: " + Environment.NewLine + (String.IsNullOrWhiteSpace(tmpC2V.Substring(tmpC2V.Length - 1)) ? tmpC2V.Remove(tmpC2V.Length - 1) : tmpC2V));
+                                if (logIsEnabled) Log.Write("Try to sync current state of exist key with Sentinel EMS database");
+                                res = GetRequest("target.ws", baseEMSUrl, HttpMethod.Post, new KeyValuePair<string, string>("Checkin", tmpC2V), res);
+                                if (res.httpClientResponseStatus == "OK")
+                                {
+                                    // some actions...maybe...XD
+                                }
+                                else
+                                {
+                                    if (logIsEnabled) Log.Write("Sync request error: " + res.httpClientResponseStatus + " - " + res.httpClientResponseStr);
+                                }
                             }
                             else
                             {
-                                if (logIsEnabled) Log.Write("Request error: " + res.httpClientResponseStatus + " - " + res.httpClientResponseStr);
+                                if (logIsEnabled) Log.Write("Login error: " + res.httpClientResponseStatus + " - " + res.httpClientResponseStr);
                             }
                         }
                         else
                         {
                             if (logIsEnabled) Log.Write("Error: " + (result.Key != "def" ? result.Key : tmpC2V));
                         }
+                        break;
+
+                    case "login":
+                        emsLogin = el.Value.Value;
+                        break;
+
+                    case "passwd":
+                        emsPasswd = el.Value.Value;
                         break;
 
                     case "l":
@@ -692,6 +735,12 @@ namespace CMDRus
                         Console.WriteLine("-sync                    Send request with C2V for sync current state of the key" + Environment.NewLine +
                                           "                         with Sentinel EMS. If more then one key in system," + Environment.NewLine +
                                           "                         please set Key ID like: -t:<KeyID>" + Environment.NewLine);
+                        Console.WriteLine("Additional(Mandatory for \"sync\") parameters: " + Environment.NewLine);
+                        Console.WriteLine("-login                   For set account name from Sentinel EMS, will be using" + Environment.NewLine);
+                        Console.WriteLine("                         for login in vendor part of Sentinel EMS." + Environment.NewLine);
+                        Console.WriteLine("                         !Be careful!: account should be with minimun rights!" + Environment.NewLine);
+                        Console.WriteLine("-passwd                  For set password from account which was set in" + Environment.NewLine);
+                        Console.WriteLine("                         \"login\" parameter." + Environment.NewLine);
                         Console.WriteLine("Additional(Optional) parameters: " + Environment.NewLine);
                         Console.WriteLine("-e:<SentinelEMSUrl>      Set EMS Url for activation. Mandatory for:" + Environment.NewLine +
                                           "                         \"-a\", \"-i\", \"-fetch\" & \"-sync\"." + Environment.NewLine);
@@ -713,7 +762,7 @@ namespace CMDRus
                         Console.WriteLine("8) dotnet cmdrus.dll -u:LicenseFilePath" + Path.DirectorySeparatorChar + "LicenseFile.v2c -l" + Environment.NewLine);
                         Console.WriteLine("9) dotnet cmdrus.dll -id -p:DeviceID.id -l" + Environment.NewLine);
                         Console.WriteLine("10) dotnet cmdrus.dll -fetch -e:http://emsurl:8080/ems -t:<KeyId> -p:PendingUpdates.v2cp -l" + Environment.NewLine);
-                        Console.WriteLine("11) dotnet cmdrus.dll -sync -e:http://emsurl:8080/ems -t:<KeyId> -l" + Environment.NewLine);
+                        Console.WriteLine("11) dotnet cmdrus.dll -sync -login:<SentinelEmsAccount> -passwd:<PasswordFromEmsAccount> -e:http://emsurl:8080/ems -t:<KeyId> -l" + Environment.NewLine);
 
                         return;
                 }
@@ -937,6 +986,7 @@ namespace CMDRus
         {
             string fullRequestUrl = UrlBuilder(rEmsUrl, rString);
             var patterns = new[] {
+                @"login.ws",
                 @"loginByProductKey.ws",
                 @"activation/target.ws",
                 @"productKey/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}.ws",
@@ -979,6 +1029,26 @@ namespace CMDRus
 
             switch (cRequest.key)
             {
+                case "login.ws":
+                    try
+                    {
+                        client.httpClient = new HttpClient();
+
+                        var content = new StringContent(rData.Value, Encoding.UTF8, "application/xml");
+                        client.httpClientResponse = client.httpClient.PostAsync(fullRequestUrl, content).Result;
+                        client.httpClientResponseStr = client.httpClientResponse.Content.ReadAsStringAsync().Result;
+                        client.httpClientResponseStatus = client.httpClientResponse.StatusCode.ToString();
+                    }
+                    catch (System.AggregateException e)
+                    {
+                        client.httpClientResponseStatus += e.InnerException.InnerException.Message;
+                    }
+                    catch (HttpRequestException hE)
+                    {
+                        client.httpClientResponseStatus += hE.Message;
+                    }
+                    break;
+
                 case "loginByProductKey.ws":
                     try
                     {
