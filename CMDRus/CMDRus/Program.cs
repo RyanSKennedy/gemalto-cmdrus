@@ -378,6 +378,13 @@ namespace CMDRus
                                 "<password>XXX_PASSWD_XXX</password>" +
                              "</authenticationDetail>";
 
+            string protectionKeyActionXml = "<ProtectionKey>" + 
+                                               "<ProtectionKeyInput>" +
+                                                  "<action>XXX_ACTION_XXX</action>" +
+                                                  "<C2V>XXX_HASPINFO_XXX</C2V>" +
+                                               "</ProtectionKeyInput>" +
+                                            "</ProtectionKey>";
+
             RequestData res = new RequestData();
             KeyValuePair<string, string> result = new KeyValuePair<string, string>("def", "");
             foreach (var el in userCommands.Reverse())
@@ -643,10 +650,16 @@ namespace CMDRus
                             {
                                 if (logIsEnabled) Log.Write("Target C2V is: " + Environment.NewLine + (String.IsNullOrWhiteSpace(tmpC2V.Substring(tmpC2V.Length - 1)) ? tmpC2V.Remove(tmpC2V.Length - 1) : tmpC2V));
                                 if (logIsEnabled) Log.Write("Try to sync current state of exist key with Sentinel EMS database");
-                                res = GetRequest("target.ws", baseEMSUrl, HttpMethod.Post, new KeyValuePair<string, string>("Checkin", tmpC2V), res);
+
+                                XDocument c2vXml = XDocument.Parse(tmpC2V);
+                                protectionKeyActionXml = protectionKeyActionXml.Replace("XXX_HASPINFO_XXX", c2vXml.ToString());
+                                protectionKeyActionXml = protectionKeyActionXml.Replace("XXX_ACTION_XXX", "Checkin");
+
+                                res = GetRequest("target.ws", baseEMSUrl, HttpMethod.Post, new KeyValuePair<string, string>("Checkin", protectionKeyActionXml), res);
                                 if (res.httpClientResponseStatus == "OK")
                                 {
-                                    // some actions...maybe...XD
+                                    if (logIsEnabled) Log.Write("Request response is: " + Environment.NewLine + res.httpClientResponseStr);
+                                    globalResultIs = true;
                                 }
                                 else
                                 {
@@ -849,7 +862,9 @@ namespace CMDRus
         public static string GetBaseDir()
         {
             // Gate path to base dir of app
+            //=============================================
             return System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
+            //=============================================
         }
 
         public static string LoadFile(string path)
@@ -991,7 +1006,7 @@ namespace CMDRus
                 @"activation/target.ws",
                 @"productKey/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}.ws",
                 @"productKey/\w{8}-\w{4}-\w{4}-\w{4}-\w{12}/activation.ws",
-                @"target.ws" // new request (need to be implemented)
+                @"target.ws"
             };
 
             Regex regex;
@@ -1142,22 +1157,30 @@ namespace CMDRus
                     break;
 
                 case "target.ws":
-                    try
+                    if (client != null && client.httpClient != null)
                     {
-                        client.httpClient = new HttpClient();
-
-                        var content = new StringContent(rData.Value, Encoding.UTF8, "application/xml");
-                        client.httpClientResponse = client.httpClient.PostAsync(fullRequestUrl, content).Result;
-                        client.httpClientResponseStr = client.httpClientResponse.Content.ReadAsStringAsync().Result;
-                        client.httpClientResponseStatus = client.httpClientResponse.StatusCode.ToString();
+                        if (client.httpClientResponseStatus == "OK")
+                        {
+                            try
+                            {
+                                var content = new StringContent(rData.Value, Encoding.UTF8, "application/xml");
+                                client.httpClientResponse = client.httpClient.PostAsync(fullRequestUrl, content).Result;
+                                client.httpClientResponseStr = client.httpClientResponse.Content.ReadAsStringAsync().Result;
+                                client.httpClientResponseStatus = client.httpClientResponse.StatusCode.ToString();
+                            }
+                            catch (System.AggregateException e)
+                            {
+                                client.httpClientResponseStatus += e.InnerException.InnerException.Message + " | in get update by C2V request.";
+                            }
+                            catch (HttpRequestException hE)
+                            {
+                                client.httpClientResponseStatus += hE.Message + " | in get update by C2V request.";
+                            }
+                        }
                     }
-                    catch (System.AggregateException e)
+                    else
                     {
-                        client.httpClientResponseStatus += e.InnerException.InnerException.Message + " | in get update by C2V request.";
-                    }
-                    catch (HttpRequestException hE)
-                    {
-                        client.httpClientResponseStatus += hE.Message + " | in get update by C2V request.";
+                        client.httpClientResponseStatus = "Not set HttpClient instance.";
                     }
                     break;
                 
